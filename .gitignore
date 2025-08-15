@@ -1,0 +1,15 @@
+# Hugo's public directory
+/public/
+
+# Hugo's resource cache
+/resources/_gen/
+/resources/_cache/
+/resources/_cache_public/
+
+# Common system files
+.DS_Store
+Thumbs.db
+
+# Other common temporary files
+*.log
+*.bak
