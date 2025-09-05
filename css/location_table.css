@@ -1,0 +1,67 @@
+/* General Layout & Sizing */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    } 
+   
+
+/* define the parent element of the location-table */
+.nested-copy-line-height {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    flex: 1; /* Allow it to grow */
+}
+@media screen and (min-width: 60em) {
+    .w-two-thirds-l {
+        width: 100% !important;
+    }
+}
+
+#locationTable {
+    flex: 1; 
+    margin: 20px 0;
+} 
+
+/* Search and Button Styles */
+.search-container input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 300px;
+    font-size: inherit; /* This will match the text size */
+}
+
+.search-container {
+    margin: 20px 0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.button {
+    padding: 8px 16px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: inherit; /* This will match the text size */
+}
+.button:hover {
+    background-color: #e9ecef;
+}
+.search-container #toggleButton {
+    margin-left: auto;
+}
+#tableSearch:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.2);
+}
+/* Tabulator specific styles */
+.tabulator .tabulator-tableholder .tabulator-table .tabulator-cell {
+    white-space: normal;
+}
+.tabulator {
+    height: 100% !important;  /* Tabulator fills its parent container */
+}
