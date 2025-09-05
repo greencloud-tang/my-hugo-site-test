@@ -1,0 +1,66 @@
+
+    html, body {
+        padding: 20px;
+        min-height: 100vh;
+        }
+
+/* Override theme's max-width on article tag */
+article.mw8 {
+    max-width: 100% !important;
+}
+/* 2. Style the map to fill the wrapper */
+#map {
+    width: 100%;
+    height: 600px;
+}
+
+    #wordCloudCanvas1, #wordCloudCanvas2 {
+        border: 1px solid #ccc;
+        height: 600px; 
+        width: 100%;
+    }
+    .hidden {
+            display: none;
+        }
+        .visible {
+            display: block;
+        }
+        #businessTable {
+            margin: 20px 0;
+            flex: 1;
+        }
+        .search-container {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .search-container input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 300px;
+        }
+        .button {
+            padding: 8px 16px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #e9ecef;
+        }
+
+        .search-container #toggleButton {
+        margin-left: auto; /* Push the button to the right */
+        }
+
+        #tableSearch:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.2);
+        }
+        .tabulator .tabulator-tableholder .tabulator-table .tabulator-cell {
+            white-space: normal;
+        }

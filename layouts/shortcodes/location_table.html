@@ -1,0 +1,266 @@
+
+       
+        <div class="search-container">
+            <input type="text" id="tableSearch" placeholder="Search table...">
+            <button class="button" id="clearAll">Clear All</button>
+            <div id="filteredRowCount">Total results: <span id="rowCount">0</span></div>
+        </div>
+        <div id="locationTable">
+            <div class="loading">Loading data...</div>
+        </div>
+    
+   
+    <script> 
+//Your JavaScript code from ChineseBusinessLocationOnly.js goes here
+//Global variables:
+let tabulator;
+let tableData = [];
+let filters = [];
+
+//----------------------
+// Initialize application
+function initializeApp() {
+// Load CSV data
+
+// Use the Hugo template variable to get the correct path
+const csvFilePath = '{{ .Site.BaseURL }}data/ChineseBusinessLocationsOnly.csv';
+
+
+    fetch(csvFilePath)
+    .then(response => response.text())
+    .then(csvText => {
+        // Parse CSV using Papa Parse
+        Papa.parse(csvText, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                tableData = results.data;
+                generateRowIds(tableData); // Generate IDs for the loaded data
+                console.log("Row ID:", tableData[0].id, " - Row:", tableData[0]);
+                
+                //add funtion to initiate the table;
+                initTable();
+        
+            }
+        });
+    })
+    .catch(error => console.error('Error loading CSV:', error));
+}
+//--------------------
+
+//-------------------
+//table innitialization: 
+        function initTable() {
+            const listFilterFields = ["Continent", "Country", "Province-eng", "Province-chi", "Town-eng","Town-chi", "Source"];
+            const hiddenFields = ["id"];
+        
+            if (!document.getElementById('locationTable')) {
+                console.error("Table element not found");
+                return;
+            }
+        
+            const columns = Object.keys(tableData[0]).map(field => {
+                let columnDefinition = {
+                    title: field,
+                    field: field,
+                    headerFilterPlaceholder: "Search..."
+                };
+        
+                if (listFilterFields.includes(field)) {
+                    columnDefinition.headerFilter = "list";
+                    columnDefinition.headerFilterParams = {
+                        values: getUniqueValues(tableData, field),
+                        multiselect: true
+                    };
+                    columnDefinition.headerFilterPlaceholder = "Select";
+                } else {
+                    columnDefinition.headerFilter = "input";
+                }
+        
+                if (hiddenFields.includes(field)) {
+                    columnDefinition.visible = false;
+                }
+                return columnDefinition;
+            });
+        
+            const locationTable = new Tabulator("#locationTable", {
+                data: tableData, // Use the global tableData variable here
+                headerFilterLive: true,
+                layout: "fitColumns",
+                pagination: "local",
+                paginationSize: 20,
+                paginationSizeSelector: [20, 50, 100],
+                paginationButtonCount: 3,
+                height: "100%",
+                movableColumns: true,
+                layoutColumnsOnNewData: true,
+                columns: columns
+            });
+
+        //event listener when data is filtered.
+        locationTable.on("dataFiltered", function(filters){
+            const field = filters.field;
+            const filteredData = getAvailableOptions(tableData, field,filters).filteredData;
+            console.log("filteredData", filteredData);
+            FilteredRowCountDisplay(locationTable, filteredData, "filteredRowCount");
+            updateListHeaderFilters(locationTable, locationTable.getData(), filters);
+        })
+        //event listener when data is loaded.
+        locationTable.on("dataLoaded", function(data){
+            updateListHeaderFilters(locationTable, locationTable.getData(), filters);
+})
+        //event listener for the global search box.
+        tableGlobalSearch(locationTable, "tableSearch", 300);
+
+        //event listener for the clear all button.
+        setupClearButton(locationTable, "tableSearch", "clearAll");
+        }
+//------------------------
+
+//function to generate row ids for the map.
+    function generateRowIds(data) {
+        let idCounter = 0;
+        data.forEach(row => {
+        row.id = idCounter++;
+    });
+    }
+// function to get unique values from filtered data
+const getUniqueValues = (data, field) => _.uniq(_.map(data, field)).sort();
+
+//----------------------
+// Function to get filtered data based on current filters - use explicit filter logic -functions called: getUniqueValues.
+const getAvailableOptions = (originalData, field, filters) => {
+    const filteredData = _.filter(originalData, row => {
+        return _.every(filters, filter => {
+            // Skip current field's filter
+            if (typeof filter === 'object' && filter.field === field) return true;
+            
+            // Handle function-based filters (e.g., global search)
+            if (typeof filter.field === 'function') {
+                return filter.field(row);
+            }
+            
+            // Handle header filter objects
+            if (filter.type === 'like') { // Input filters use 'like' type
+                const value = filter.value ? filter.value.toLowerCase() : '';
+                const rowValue = row[filter.field] ? row[filter.field].toString().toLowerCase() : '';
+                return rowValue.includes(value);
+            } else { // Exact match for list filters
+                return row[filter.field] === filter.value;
+            }
+        });
+    });
+    const uniqueValues = getUniqueValues(filteredData, field);
+    console.log("filteredData from getAvailableOptions", filteredData);
+    return {
+        filteredData: filteredData,
+        uniqueValues: uniqueValues
+    };
+};
+
+
+//function to get list filter fields of the table dynamically
+    function getListFilterFields(table) {
+        const fields = [];
+        table.getColumns().forEach(column => {
+          if (column.getDefinition().headerFilter === "list") {
+            fields.push(column.getField());
+          }
+        });
+        return fields;
+      }
+   
+//function to update the list header filters- functions called: getListFilterFields, getAvailableOptions.
+      function updateListHeaderFilters(table, tableData, filters) {
+        const fields = getListFilterFields(table);
+        fields.forEach(field => {
+          const column = table.getColumn(field);
+          if (!column) {
+            console.error(`Column '${field}' not found.`);
+            return;
+        }
+        console.log(`Column '${field}' found. headerFilter:`, column.getDefinition().headerFilter);
+        if (column.getDefinition().headerFilter !== "list") {
+            console.error(`Column '${field}' is not a list filter.`);
+            return;
+        }
+        const availableOptions = getAvailableOptions(tableData, field, filters).uniqueValues;
+          
+          // Check if the column exists and if it's a list filter
+          if (column && column.getDefinition().headerFilter === "list") {
+            column.getDefinition().headerFilterParams = {
+              values: availableOptions,
+              search: true
+            }
+          }
+            // Preserve current selection if valid
+        const currentValue = column.getHeaderFilterValue();
+        if (currentValue && availableOptions.includes(currentValue)) { 
+            column.setHeaderFilterValue(currentValue);
+        } else {
+            column.setHeaderFilterValue("");
+        }
+        });
+        }
+
+//event listener function for the global search box. 
+        function tableGlobalSearch(table, searchInputId, delay = 300) {
+            const searchInput = document.getElementById(searchInputId);
+            let searchTimeout;
+          
+            if (!searchInput) {
+              console.error(`Search input with ID '${searchInputId}' not found.`);
+              return;
+            }
+          
+            searchInput.addEventListener("input", function(e) {
+              console.log("searchInput triggered");
+              clearTimeout(searchTimeout);
+              searchTimeout = setTimeout(() => {
+                const value = e.target.value;
+                table.setFilter(function(data) {
+                  return Object.values(data).some(val =>
+                    val && val.toString().toLowerCase().includes(value.toLowerCase())
+                  );
+                });
+              }, delay);
+            });
+          }
+          
+// event listener for the clear all button.
+        function setupClearButton(table, searchInputId, clearButtonId) {
+            const clearButton = document.getElementById(clearButtonId);
+            const searchInput = document.getElementById(searchInputId);
+          
+            if (!clearButton) {
+              console.error(`Clear button with ID '${clearButtonId}' not found.`);
+              return;
+            }
+          
+            if (!searchInput) {
+              console.error(`Search input with ID '${searchInputId}' not found.`);
+              return;
+            }
+          
+            clearButton.addEventListener("click", function() {
+              searchInput.value = "";
+              table.clearFilter(true);
+            });
+          }
+
+          //function to display number of filtered rows - to add to dataFiltered event listener.
+    function FilteredRowCountDisplay(table, rows, displayElementId) {
+        const rowCountElement = document.getElementById("rowCount");
+        const filteredRowCountDiv = document.getElementById(displayElementId);
+  
+        if (rowCountElement && filteredRowCountDiv) {
+        rowCountElement.textContent = rows.length;
+        }
+    }
+
+//-------------------------
+// Start the application
+    initializeApp()
+
+    </script>
+</body>

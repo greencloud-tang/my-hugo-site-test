@@ -1,6 +1,7 @@
-baseURL = 'https://greencloud-tang.github.io/my-hugo-site-test/'
+# baseURL = 'https://greencloud-tang.github.io/my-hugo-site-test/'
 languageCode = 'en-us'
 title = 'How Early Chinese Immigrants Named North American Places'
+relativeURLs = false
 [module]
 [[module.imports]]
 disable = false
@@ -35,3 +36,28 @@ copyright_author = "Tang, H"
 [[params.ananke_socials]]
 name = "twitter"
 url = "https://twitter.com/GoHugoIO"
+
+ # Define the "About" page
+[[menu.main]]
+    name = "About"
+    url = "/ "
+    weight = 10 # Place it first
+  
+  # Define the "Directory" page
+[[menu.main]]
+    name = "Directory"
+    url = "/directory/"
+    weight = 20
+    
+  # Define the "location list" page
+  # This is the one you want to customize
+  [[menu.main]]
+    name = "Location List"
+    url = "/location-list/"
+    weight = 30 # Place it third
+
+  # Define the "Contact" page
+  [[menu.main]]
+    name = "Contact"
+    url = "/contact/"
+    weight = 40 # Place it last

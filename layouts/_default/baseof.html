@@ -25,6 +25,7 @@
 
     {{ partials.Include "site-style.html" . }}
     {{ partials.Include "site-scripts.html" . }}
+    {{ partial "tabulator_assets.html" . }}
 
     {{ block "favicon" . }}
       {{ partials.IncludeCached "site-favicon.html" . }}
@@ -52,6 +53,7 @@
       {{ template "_internal/google_analytics.html" . }}
     {{ end }}
 	{{ block "head" . }}{{ partials.Include "head-additions.html" . }}{{ end }}
+
   </head>
 
   {{- $environment := hugo.Environment | compare.Default "production" -}}
